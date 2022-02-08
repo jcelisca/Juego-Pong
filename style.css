@@ -1,12 +1,20 @@
 #canvas {
-    text-align: center;
     border: 2px solid;
     margin-top: 20px;
-    margin-left: 300px;
+    margin-left: 400px;
     background-color: darkseagreen;
 }
-h1 {
-    font-family: Verdana, Geneva, Tahoma, sans-serif;
+#titulo {
     text-align: center;
+    font-family: Verdana, Geneva, Tahoma, sans-serif;
     color: rgb(18, 19, 18);
+}
+
+#div1 {
+    justify-content: center;
+}
+
+#info{
+    text-align: center;
+    font-family: Georgia, 'Times New Roman', Times, serif;
 }
