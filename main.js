@@ -124,7 +124,6 @@
             if(this.y + this.height < this.board.height){
                 this.y += this.speed;
             }
-            
         },
 
         /**
@@ -170,7 +169,7 @@
 
 var board = new Board(500,300);
 var bar = new Bar(20, 100, 15, 90, board);
-var bar2 = new Bar(460, 100, 15, 90, board);
+var bar2 = new Bar(465, 100, 15, 90, board);
 var canvas = document.getElementById("canvas");
 var board_view = new BoardView(canvas,board);
 board_view.draw();
