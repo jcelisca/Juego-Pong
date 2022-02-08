@@ -8,7 +8,7 @@
     self.Board = function(width, height){
         this.width = width;
         this.height = height;
-        this.playing = false;
+        this.playing = true;
         this.game_over = false;
         this.bars = [];
         this.ball = null;
@@ -41,15 +41,26 @@
     }
 
     self.BoardView.prototype = {
+        /**
+         * Limpia la pantalla agregando un rectangulo del tamaño del tablero
+         */
         clean: function(){
             this.ctx.clearRect(0, 0, this.board.width, this.board.height)
         },
+
+        /**
+         * Dibuja todos los elementos del tablero recorriendo el array que almacena los objetos Ball y Bar 
+         */
         draw: function(){
             for (var i = this.board.elements.length -1; i >= 0;i--){
                 var el = this.board.elements[i];
                 draw(this.ctx, el)
             }
         },
+
+        /**
+         * Valida si el juego esta en pausa o no, o si el jugador perdió
+         */
         play: function(){
             if(this.board.playing){
                 this.clean();
@@ -58,12 +69,17 @@
                 this.board.ball.move();
                 this.board.ball.speedBall();
                 this.board.ball.outBall();*/
-            }else if(this.board.game_over){
+            }/*else if(this.board.game_over){
                 this.gameOver();
-            }else this.pause();
+            }else this.pause();*/
         }
     }
 
+    /**
+     * Dibuja los objetos Ball o Bar validando el parámetro enviado a la función
+     * @param {*} ctx contiene el contexto de dibujo para el canvas
+     * @param {*} element indica si el objeto a dibujar es un rectangulo o un círcullo
+     */
     function draw(ctx, element){
         switch(element.kind){
             case "rectangle":
@@ -101,19 +117,23 @@
     }
 
     self.Bar.prototype = {
+        /**
+         * Mover la barra hacia arriba
+         */
         down: function(){
             if(this.y + this.height < this.board.height){
                 this.y += this.speed;
             }
             
         },
+
+        /**
+         * Mover la barra hacia abajo
+         */
         up: function(){
             if(this.y + this.height > this.height){
                 this.y -= this.speed;
             }
-        },
-        toString: function(){
-            return "x: "+ this.x + " y: "+ this.y;
         }
     }
 })();
@@ -148,12 +168,14 @@
 
 })();
 
-var board = new Board(700,400);
-var bar = new Bar(20, 100, 20, 100, board);
-var bar2 = new Bar(460, 100, 20, 100, board);
+var board = new Board(500,300);
+var bar = new Bar(20, 100, 15, 90, board);
+var bar2 = new Bar(460, 100, 15, 90, board);
 var canvas = document.getElementById("canvas");
 var board_view = new BoardView(canvas,board);
 board_view.draw();
+window.requestAnimationFrame(controller);
+
 
 document.addEventListener("keydown", function(ev){
     
