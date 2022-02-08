@@ -15,8 +15,12 @@
         this.count = 0;
     }
 
-    self.board.prototype = {
-
+    self.Board.prototype = {
+        get elements(){
+            var elements = this.bars.map(function(bar){return bar;});
+            //elements.push(this.ball);
+            return elements;
+        }
     }
 
 })();
@@ -36,16 +40,83 @@
         this.ctx = canvas.getContext("2d");
     }
 
-    self.board_view.prototype = {
-
+    self.BoardView.prototype = {
+        clean: function(){
+            this.ctx.clearRect(0, 0, this.board.width, this.board.height)
+        },
+        draw: function(){
+            for (var i = this.board.elements.length -1; i >= 0;i--){
+                var el = this.board.elements[i];
+                draw(this.ctx, el)
+            }
+        },
+        play: function(){
+            if(this.board.playing){
+                this.clean();
+                this.draw();
+                /*this.check_collisions();
+                this.board.ball.move();
+                this.board.ball.speedBall();
+                this.board.ball.outBall();*/
+            }else if(this.board.game_over){
+                this.gameOver();
+            }else this.pause();
+        }
     }
 
     function draw(ctx, element){
-
+        switch(element.kind){
+            case "rectangle":
+                ctx.fillRect(element.x, element.y, element.width, element.height)
+                break;
+            case "circle":
+                ctx.beginPath();
+                ctx.arc(element.x, element.y, element.radius, 0, 7);
+                ctx.fill();
+                ctx.closePath();
+                break;
+        }
     }
 
 })();
 
+(function(){
+    /**
+     * Función que permite crear un objeto Bar o barra dentro del tablero
+     * @param {*} x posición en el eje x dentro del tablero donde estará la barra
+     * @param {*} y posición en el eje y dentro del tablero donde estará la barra
+     * @param {*} width ancho que tendrá la barra
+     * @param {*} height alto que tendrá la barra
+     * @param {*} board tablero dentro del cual se dibujaran las barras
+     */
+    self.Bar = function(x, y, width, height, board){
+        this.x = x;
+        this.y = y;
+        this.width = width;
+        this.height = height;
+        this.board = board;
+        this.board.bars.push(this);
+        this.kind = "rectangle";
+        this.speed = 30;
+    }
+
+    self.Bar.prototype = {
+        down: function(){
+            if(this.y + this.height < this.board.height){
+                this.y += this.speed;
+            }
+            
+        },
+        up: function(){
+            if(this.y + this.height > this.height){
+                this.y -= this.speed;
+            }
+        },
+        toString: function(){
+            return "x: "+ this.x + " y: "+ this.y;
+        }
+    }
+})();
 
 (function(){
     /**
@@ -77,32 +148,34 @@
 
 })();
 
-
-(function(){
-    /**
-     * Función que permite crear un objeto Bar o barra dentro del tablero
-     * @param {*} x posición en el eje x dentro del tablero donde estará la barra
-     * @param {*} y posición en el eje y dentro del tablero donde estará la barra
-     * @param {*} width ancho que tendrá la barra
-     * @param {*} height alto que tendrá la barra
-     * @param {*} board tablero dentro del cual se dibujaran las barras
-     */
-    self.Bar = function(x, y, width, height, board){
-        this.x = x;
-        this.y = y;
-        this.width = width;
-        this.height = height;
-        this.board = board;
-        this.board.bars.push(this);
-        this.kind = "rectangle";
-        this.speed = 30;
-    }
-
-    self.Bar.prototype = {
-
-    }
-})();
-
 var board = new Board(700,400);
+var bar = new Bar(20, 100, 20, 100, board);
+var bar2 = new Bar(460, 100, 20, 100, board);
 var canvas = document.getElementById("canvas");
 var board_view = new BoardView(canvas,board);
+board_view.draw();
+
+document.addEventListener("keydown", function(ev){
+    
+    if(ev.keyCode == 38){
+        ev.preventDefault();
+        bar2.up();
+    }else if(ev.keyCode == 40){
+        ev.preventDefault();
+        bar2.down();
+    }else if(ev.keyCode === 87){
+        ev.preventDefault();
+        bar.up();
+    }else if(ev.keyCode === 83){
+        ev.preventDefault();
+        bar.down();
+    }else if(ev.keyCode === 32){
+        ev.preventDefault();
+        board.playing = !board.playing;
+    }
+});
+
+function  controller(){  
+    board_view.play();
+    window.requestAnimationFrame(controller)
+}
