@@ -21,6 +21,6 @@
 
 })();
 
-var board = new Board(500,300);
+var board = new Board(700,400);
 var canvas = document.getElementById("canvas");
 var board_view = new BoardView(canvas,board);
