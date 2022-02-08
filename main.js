@@ -8,7 +8,7 @@
     self.Board = function(width, height){
         this.width = width;
         this.height = height;
-        this.playing = true;
+        this.playing = false;
         this.game_over = false;
         this.bars = [];
         this.ball = null;
@@ -18,7 +18,7 @@
     self.Board.prototype = {
         get elements(){
             var elements = this.bars.map(function(bar){return bar;});
-            //elements.push(this.ball);
+            elements.push(this.ball);
             return elements;
         }
     }
@@ -65,14 +65,83 @@
             if(this.board.playing){
                 this.clean();
                 this.draw();
-                /*this.check_collisions();
+                this.check_collisions();
                 this.board.ball.move();
                 this.board.ball.speedBall();
-                this.board.ball.outBall();*/
-            }/*else if(this.board.game_over){
+                this.board.ball.outBall();
+            }else if(this.board.game_over){
                 this.gameOver();
-            }else this.pause();*/
+            }else this.pause();
+        },
+
+        /**
+         * Al persionar la tecla espaciadora playing cambia de valor booleano permitiendo poner pausa al juego
+         */
+        pause: function(){
+            let canvas = document.getElementById("canvas");
+            let ctx = canvas.getContext("2d");
+            let image = document.getElementById('imagen1');
+
+            ctx.drawImage(image, 220, 120, 60, 60);
+        },
+
+        /**
+         * Muestra mensaje de game over si la pelota sale del tablero
+         */
+        gameOver: function(){
+            let canvas = document.getElementById("canvas");
+            let ctx = canvas.getContext("2d");
+            let image = document.getElementById('imagen2');
+
+            ctx.drawImage(image, 220, 120, 60, 60);
+        },
+
+        /**
+         * Revisa si la pelota choca con las barras o los lados horizontales del tablero
+         */
+        check_collisions: function(){
+            for (var i = this.board.bars.length -1; i >= 0; i--){
+                var bar = this.board.bars[i];
+                if(hitBar(bar, this.board.ball)){
+                    this.board.ball.collisionBar(bar);
+                    this.board.count += 1;
+                }
+            };
+            if(hitEdge(this.board.ball)){
+                this.board.ball.collisionEdge();
+                this.board.count += 1;
+            }   
+        }  
+    }
+     /**
+      * Función que valida si la pelota choca con las barras
+      * @param {*} a objeto Bar
+      * @param {*} b objeto Ball
+      * @returns devuelve true si la pelota choca las barras
+      */
+    function hitBar(a, b){
+        var hit = false;
+        //coliisiones horizontales
+        if(b.x + b.width >= a.x + (a.width/2) && (b.x-b.radius)  < a.x + a.width){
+            //colisiones verticales
+            if(b.y + b.height >= a.y && b.y < a.y + a.height){
+                hit = true;
+            }
+        };
+        return hit;
+    }
+
+    /**
+     * Función que valida si la pelota choca con los lados horizontales del tablero
+     * @param {*} b objeto Ball
+     * @returns devuelve true si la pelota choca uno de los lados horizontales del tablero
+     */
+    function hitEdge(b){
+        var hit = false;
+        if(b.y + b.radius > this.board.height || b.y + b.radius < b.height){
+            hit = true;
         }
+        return hit;
     }
 
     /**
@@ -163,6 +232,63 @@
 
     self.Ball.prototype = {
 
+        /**
+         * Indica las coordenadas en X y Y de la trayectoria de la pelota
+         */
+        move: function(){
+            this.x += (this.speed_x * this.direction);
+            this.y += (this.speed_y);
+        },
+
+        /**
+         * Aumenta la velocidad de la pelota cada 6 choques
+         */
+        speedBall: function(){
+            if(this.board.count > 5){
+                this.speed += 1;
+                this.board.count = 0;
+            }
+        },
+        get width(){
+            return this.radius * 2;
+        },
+
+        get height(){
+            return this.radius * 2;
+        },
+
+        /**
+         * Asigna la nueva trayectoria en X y Y cuando la pelota choca con un de las barras
+         * @param {*} bar Objeto Bar que se cruza con las coordenadas de la pelota
+         */
+        collisionBar: function(bar){
+            var relative_intersect_y = (bar.y + (bar.height/2)) - this.y;
+            var normalized_intersect_y = relative_intersect_y / (bar.height / 2);
+
+            this.bounce_angle = normalized_intersect_y * this.max_bounce_angle;
+            this.speed_y = this.speed * -Math.sin(this.bounce_angle);
+            this.speed_x = this.speed * Math.cos(this.bounce_angle);
+
+            if(this.x > (this.board.width / 2)) this.direction = -1;
+            else this.direction = 1;
+        },
+
+        /**
+         * Cambia la dirección en el eje Y cuando la pelota choca con un de los lados horizontales del tablero
+         */
+        collisionEdge: function(){
+            this.speed_y = -this.speed_y;
+        },
+
+        /**
+         * Función que revisa si la pelota salió del tablero
+         */
+        outBall: function(){
+            if((this.x + this.width*2 < this.width) || this.x -this.width > this.board.width){
+                this.board.playing = false;
+                this.board.game_over = true;
+            }
+        }
     }
 
 })();
@@ -170,6 +296,7 @@
 var board = new Board(500,300);
 var bar = new Bar(20, 100, 15, 90, board);
 var bar2 = new Bar(465, 100, 15, 90, board);
+var ball = new Ball(350, 100, 10, board);
 var canvas = document.getElementById("canvas");
 var board_view = new BoardView(canvas,board);
 board_view.draw();
